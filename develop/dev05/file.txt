@@ -1,0 +1,11 @@
+Hello World
+This is a test file.
+There are several lines here.
+This is another test line.
+Grep is a powerful utility.
+Lines with 'test' should be matched by grep.
+This is the last line.
+This is a test file.
+It contains multiple lines.
+Test the grep utility in GoLang.
+Check if it handles flags properly.
