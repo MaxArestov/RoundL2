@@ -25,7 +25,7 @@ import (
 
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
-
+// Определение структуры для конфигурации grep
 type grepConfig struct {
 	printAfter      int
 	printBefore     int
@@ -56,6 +56,7 @@ func setupFlags() *grepConfig {
 	return config
 }
 
+// GrepFile функция для поиска по шаблону в файле
 func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -63,14 +64,16 @@ func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) 
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(file) // Создание сканера для чтения файла
 	lineNumber, matchedLines := 0, 0
-	var beforeLines, result []string
+	var beforeLines, result []string // Слайсы для хранения строк до и после совпадения
 
+	// Цикл чтения строк файла
 	for scanner.Scan() {
-		line := scanner.Text()
-		lineNumber++
+		line := scanner.Text() // Чтение строки
+		lineNumber++           // Увеличение счетчика строк
 
+		// Обработка строки согласно флагам
 		if cfg.ignoreCase {
 			line = strings.ToLower(line)
 		}
@@ -86,7 +89,9 @@ func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) 
 		}
 
 		if match {
-			matchedLines++
+			matchedLines++ // Увеличение счетчика совпадений
+
+			// Добавление строк в результат согласно флагам
 			if cfg.printBefore == 0 && cfg.printAfter == 0 && cfg.printContext == 0 {
 				result = append(result, line)
 			}
@@ -115,7 +120,7 @@ func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) 
 					}
 				}
 			}
-		} else {
+		} else { // Обработка not match строк
 			if cfg.printBefore > 0 {
 				if len(beforeLines) > 0 {
 					if len(beforeLines) >= cfg.printBefore {
@@ -134,7 +139,7 @@ func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) 
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
+	if err := scanner.Err(); err != nil { // Возврат ошибки при чтении файла
 		return nil, -1, err
 	}
 
@@ -142,29 +147,34 @@ func GrepFile(fileName, pattern string, cfg *grepConfig) ([]string, int, error) 
 }
 
 func main() {
-	config := setupFlags()
+	config := setupFlags() // Получение конфигурации из флагов
 
+	// Проверка наличия необходимых аргументов
 	if flag.NArg() < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags] pattern filename\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	pattern := flag.Arg(0)
-	fileName := flag.Arg(1)
+	pattern := flag.Arg(0)  // Получение шаблона поиска
+	fileName := flag.Arg(1) // Получение имени файла
 
 	if config.ignoreCase {
 		pattern = strings.ToLower(pattern)
 	}
 
+	// Получение строк и количества совпадений
 	lines, matchedCount, err := GrepFile(fileName, pattern, config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grep: %v\n", err)
 		os.Exit(1)
 	}
 
+	// Вывод строк в Stdout
 	for _, line := range lines {
 		fmt.Println(line)
 	}
+
+	// Вывод количества совпадений.
 	if config.printLineCount {
 		fmt.Printf(">>>>>>>Matched lines: %d<<<<<<<", matchedCount)
 	}
